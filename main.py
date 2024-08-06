@@ -60,8 +60,7 @@ class FaceRecognition:
 
     @staticmethod
     def feature_compare(feature1, feature2, threshold):
-        diff = np.subtract(feature1, feature2)
-        dist = np.sum(np.square(diff), 1)
+        dist = np.sum(np.square(np.subtract(feature1, feature2)))
         return dist < threshold
 
     def register(self, image, user_name):
