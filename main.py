@@ -4,7 +4,7 @@ import numpy as np
 import insightface
 from sklearn import preprocessing
 from PIL import Image, ImageDraw, ImageFont
-
+import time
 
 class FaceRecognition:
     def __init__(self, gpu_id=0, face_db='face_db', threshold=1.24, det_thresh=0.50, det_size=(640, 640)):
@@ -42,21 +42,22 @@ class FaceRecognition:
             faces = self.model.get(image)
             if not faces:
                 return []
-            embeddings = np.array([face.embedding for face in faces])
-            embeddings = preprocessing.normalize(embeddings)
+            embeddings = preprocessing.normalize(np.array([face.embedding for face in faces]))
 
             results = []
             for embedding in embeddings:
-                user_name = "unknown"
-                for com_face in self.faces_embedding:
-                    if self.feature_compare(embedding, com_face["feature"], self.threshold):
-                        user_name = com_face["user_name"]
-                        break
-                results.append(user_name)
+                matched_user = self.find_matching_user(embedding)
+                results.append(matched_user)
             return results
         except Exception as e:
             print(f"Recognition error: {e}")
             return []
+
+    def find_matching_user(self, embedding):
+        for com_face in self.faces_embedding:
+            if self.feature_compare(embedding, com_face["feature"], self.threshold):
+                return com_face["user_name"]
+        return "unknown"
 
     @staticmethod
     def feature_compare(feature1, feature2, threshold):
@@ -121,7 +122,6 @@ def draw_chinese_text(image, text, position, font,  color=(0, 255, 0)):
     image = cv2.cvtColor(np.array(image_pil), cv2.COLOR_RGB2BGR)
     return image
 
-import time
 
 if __name__ == '__main__':
     face_recognition = FaceRecognition()
